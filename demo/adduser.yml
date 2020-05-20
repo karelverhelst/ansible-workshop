@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  name: add "SampleUser" to svm
+  vars:
+    min_ansible_version: 2.8.0
+    login: &login    
+     vserver: svm1
+     username: admin
+     password: "{{ password }}"
+     hostname: 192.168.1.111
+     https: true
+     validate_certs: false
+
+  vars_prompt:
+  - name: password
+    prompt: "Type the admin password"
+    private: yes
+  tasks:
+  - name: Checking Ansible version
+    fail:
+        msg: "Ansible version is {{ ansible_version.full }}. Min version that is required is {{ min_ansible_version }}"      
+    when: ansible_version.full is version(min_ansible_version, '<')
+  - name: Create User
+    na_ontap_user:
+      state: present
+      name: SampleUser
+      applications: ssh
+      authentication_method: password
+      set_password: apn1242183u1298u41
+      lock_user: True
+      role_name: vsadmin
+      <<: *login

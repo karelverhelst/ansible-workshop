@@ -1,0 +1,19 @@
+[ontap]
+192.169.0.101 shortname=cluster1
+192.168.0.102 shortname=cluster2
+
+[servers]
+192.168.0.62 shortname=rhel2
+192.168.0.61 shortname=rhel1
+
+[nginx]
+192.168.0.61
+192.168.0.62
+
+[rhel1]
+192.168.0.61
+
+[rhel2]
+192.168.0.62
+
+

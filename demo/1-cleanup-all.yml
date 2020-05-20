@@ -1,0 +1,222 @@
+---
+- name: Remove snapmirror, cluster peering, vserver peering, svm's, lifs, aggregates from both clusters
+  hosts: localhost
+  gather_facts: false
+  ignore_errors: true
+  vars:
+    vserver1: svm1
+    vserver2: svm2
+    cluster1: cluster1
+    ntpservers: 192.168.0.253
+    login: &login
+     username: admin
+     password: Netapp1!
+     https: true
+     validate_certs: false
+  vars_files:
+  - var_cluster.yml
+  tasks:
+  - name: Delete snapmirror relationships with cluster1 as destination
+    na_ontap_command:
+      command: ['snapmirror delete *']
+      privilege: admin
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - replication
+  - name: Release snapmirror relationships on cluster1
+    na_ontap_command:
+      command: ['snapmirror release * -force']
+      privilege: admin
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - replication
+  - name: Remove vserver peering
+    na_ontap_vserver_peer:
+      state: absent
+      peer_vserver: "{{ item.dst_vserver }}"
+      vserver: "{{ item.src_vserver }}"
+      peer_cluster: "{{ item.dst_cluster }}"
+      applications: snapmirror
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ snapmirror }}"
+    tags:
+    - replication
+  - name: Gather facts cluster1
+    na_ontap_info:
+      state: info
+      gather_subset:
+      - net_interface_info
+      - volume_info
+      - aggregate_info
+      hostname: "{{ cluster1 }}"
+      <<: *login
+    tags:
+    - cluster1
+    register: netapp1
+  - name: Gather facts cluster2
+    na_ontap_info:
+      state: info
+      gather_subset:
+      - net_interface_info
+      - volume_info
+      - aggregate_info
+      hostname: "{{ cluster2 }}"
+      <<: *login
+    tags:
+    - cluster2
+    register: netapp2
+  - name: Unset NTP on cluster1
+    na_ontap_ntp:
+      state: absent
+      version: auto
+      server_name: "{{ item.ntpservers }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster1
+  - name: Set Timezone back to Default cluster1 and cluster2
+    na_ontap_command:
+      command: ['time', '-timezone', 'UTC']
+      privilege: admin
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster1    
+  - name: Remove all svm lifs cluster1 - svm1
+    na_ontap_interface:
+      state: absent
+      interface_name: "{{ netapp1.ontap_info.net_interface_info[item].interface_name }}"
+      vserver: "{{ vserver1 }}"
+      hostname: "{{ cluster1 }}"
+      <<: *login
+    with_items: "{{ netapp1.ontap_info.net_interface_info }}"
+    when:
+    - "{{ netapp1.ontap_info.net_interface_info[item].vserver == vserver1 }}"
+    ignore_errors: yes
+    tags:
+    - svm1
+  - name: Remove all data vols cluster1 - svm1
+    na_ontap_volume:
+      state: absent
+      name:  "{{ netapp1.ontap_info.volume_info[item].volume_id_attributes.name }}"
+      vserver: "{{ vserver1 }}"
+      hostname: "{{ cluster1 }}"
+      <<: *login
+    with_items: "{{ netapp1.ontap_info.volume_info }}"
+    when:
+    - netapp1.ontap_info.volume_info[item].volume_id_attributes.owning_vserver_name == "{{ vserver1 }}"
+    - not (netapp1.ontap_info.volume_info[item].volume_id_attributes.name).endswith('root')
+    ignore_errors: yes
+    tags:
+    - svm1
+  - name: Remove all svm lifs cluster2- svm2
+    na_ontap_interface:
+      state: absent
+      interface_name: "{{ netapp2.ontap_info.net_interface_info[item].interface_name }}"
+      vserver: "{{ vserver2 }}"
+      hostname: "{{ cluster2 }}"
+      <<: *login
+    with_items: "{{ netapp2.ontap_info.net_interface_info }}"
+    when:
+    - "{{ netapp2.ontap_info.net_interface_info[item].vserver == vserver2 }}"
+    ignore_errors: yes
+    tags:
+    - svm2
+  - name: Remove all data vols cluster2 - svm2
+    na_ontap_volume:
+      state: absent
+      name:  "{{ netapp2.ontap_info.volume_info[item].volume_id_attributes.name }}"
+      vserver: "{{ vserver2 }}"
+      hostname: "{{ cluster2 }}"
+      <<: *login
+    with_items: "{{ netapp2.ontap_info.volume_info }}"
+    when:
+    - netapp2.ontap_info.volume_info[item].volume_id_attributes.owning_vserver_name == "{{ vserver2 }}"
+    - not (netapp2.ontap_info.volume_info[item].volume_id_attributes.name).endswith('root')
+    ignore_errors: yes
+    tags:
+    - svm2
+  - name: Remove svm1 and svm2 
+    na_ontap_svm:
+      state: absent
+      name: "{{ item.name }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ svm }}"
+    tags:
+    - svm1
+    - svm2
+  - name: Remove data aggregate from cluster1 and cluster2
+    na_ontap_aggregate:
+      state: absent
+      name: "{{ item.name }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ aggr }}"
+    ignore_errors: yes
+    tags:
+    - cluster
+  - name: Remove Licenses on Cluster1 and Cluster2
+    na_ontap_license:
+      state: absent
+      license_names: "{{ item.license_names }}"
+      serial_number: "{{ item.license_serial }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster
+  - name: Remove peering interfaces
+    na_ontap_interface:
+      state: absent
+      interface_name: "{{ item.name }}"
+      home_port: e0c
+      home_node: "{{ item.home_node }}"
+      role: intercluster
+      address: "{{ item.address }}"
+      netmask: 255.255.255.0
+      vserver: "{{ item.vserver }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ peerlif }}"
+    tags:
+    - peer
+  - name: Remove subnets
+    na_ontap_net_subnet:
+      state: absent
+      name: "{{ item.subnetname }}"
+      ipspace: Default
+      broadcast_domain: Default
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster
+    - subnet    
+  - na_ontap_cluster_peer:
+      state: absent
+      source_cluster_name: cluster2
+      dest_cluster_name: cluster1
+      passphrase: Netapp1!
+      hostname: "{{ cluster2 }}"
+      dest_hostname: "{{ cluster1 }}"
+      <<: *login
+    tags:
+    - peer
+  - na_ontap_cluster_peer:
+      state: absent
+      source_cluster_name: cluster1
+      dest_cluster_name: cluster2
+      passphrase: Netapp1!
+      hostname: "{{ cluster1 }}"
+      dest_hostname: "{{ cluster2 }}"
+      <<: *login
+    tags:
+    - peer 

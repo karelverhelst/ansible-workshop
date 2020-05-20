@@ -1,0 +1,63 @@
+---
+- hosts: localhost
+  gather_facts: false
+  name: Cleanup Cluster1
+  vars:
+    login: &login
+     hostname: 192.168.0.101 # NetApp Cluster IP
+     username: admin # Cluster User
+     password: Netapp1! # Cluster Password
+     https: true
+     validate_certs: false
+  vars_files:
+   - var_cluster1.yml
+  tasks:
+  - name: Delete vserver peering
+    na_ontap_vserver_peer:
+      state: absent
+      peer_vserver: "{{ peer_vserver }}"
+      peer_cluster: "{{ peer_cluster }}"
+      vserver: "{{ item.name }}"
+      applications: snapmirror
+      dest_hostname: "{{ dst_ontap }}"
+      <<: *login
+    with_items: "{{ svm }}"
+  - name: Remove LIFs
+    na_ontap_interface:
+      state: absent
+      interface_name: "{{ item.name }}"
+      home_port: "{{ item.home }}"
+      home_node: "{{ item.node }}"
+      vserver: "{{ item.vserver }}"
+      <<: *login
+    with_items: "{{ lif }}"     
+  - name: Remove Volumes
+    na_ontap_volume:
+      state: absent
+      name: "{{ item.name }}"
+      vserver: "{{ item.vserver }}"
+      aggregate_name: "{{ item.aggr }}"
+      wait_for_completion: true
+      <<: *login
+    with_items: "{{ vols }}"  
+  - name: Remove Vserver
+    na_ontap_svm:
+      state: absent
+      name: "{{ item.name }}"
+      root_volume: "{{ item.rootvol }}"
+      root_volume_aggregate: "{{ item.rootaggr }}"
+      aggr_list: "{{ item.aggr_list }}"
+      allowed_protocols: "{{ item.allowed_protocols }}"
+      <<: *login
+    with_items: "{{ svm }}"
+  - name: Remove aggregates
+    na_ontap_aggregate:
+      state: absent
+      service_state: online
+      nodes: "{{ item.node }}"
+      name: "{{ item.name }}"
+      disk_count: "{{ item.diskcount }}"
+      wait_for_online: true
+      time_out: 300
+      <<: *login
+    with_items: "{{ aggr }}"

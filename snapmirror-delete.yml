@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  name: Snapmirror Create
+  gather_facts: false
+  vars:
+    src_ontap: 192.168.0.101
+    src_name: cluster1
+    src_lif: 192.168.0.120,192.168.0.121
+    src_vserver: svm1
+    src_volume: vol1
+    dst_volume: vol1_sm
+    dst_ontap: 192.168.0.102
+    dst_name: cluster2
+    dst_lif: 192.168.0.122
+    dst_aggr: aggr1_cluster2_01_data
+    dst_vserver: svm2
+    dst_path: svm2:vol1_sm
+    passphrase: Netapp123
+    login: &login
+     username: admin
+     password: Netapp1!
+     https: true
+     validate_certs: false
+  tasks:
+  - name: Delete SnapMirror
+    na_ontap_snapmirror:
+      state: absent
+      destination_path: "{{ dst_path }}"
+      source_hostname: "{{ src_ontap }}"
+      hostname: "{{ dst_ontap }}"
+      <<: *login
+  - name: Delete Snapmirror Destination Volume
+    na_ontap_volume:
+      state: absent
+      name: "{{ dst_volume }}"
+      type: DP
+      vserver: "{{ dst_vserver }}"
+      hostname: "{{ dst_ontap }}"
+      <<: *login

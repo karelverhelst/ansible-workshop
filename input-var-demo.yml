@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  name: Volume Action
+  vars:
+    login: &login
+     username: "{{ username }}"
+     hostname: "{{ hostname }}"
+     password: "{{ password }}"
+     https: true
+     validate_certs: false
+    vserver: svm1
+    aggr: aggr1_cluster1_01_data
+    vol_name: ansibleVol
+  vars_prompt:
+    - name: create
+      prompt: "absent or present"
+  vars_files:
+    passwd.yml
+  tasks:
+  - name: Volume Create
+    na_ontap_volume:
+      state: "{{ create }}"
+      name: "{{ vol_name }}"
+      vserver: "{{ vserver }}"
+      aggregate_name: "{{ aggr }}"
+      size: 10
+      size_unit: gb
+      junction_path: "/{{ vol_name }}"
+      space_guarantee: none
+      volume_security_style: unix
+      <<: *login

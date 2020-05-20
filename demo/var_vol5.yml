@@ -1,0 +1,20 @@
+hostname: 192.168.1.110
+username: admin
+password: Netapp01
+vol:
+- name: demo1
+  vserver: svm1
+  size: 111
+  aggr: aggr1_cluster1_01_data
+- name: demo2
+  vserver: svm1
+  size: 222
+  aggr: aggr1_cluster1_01_data
+- name: demo3
+  vserver: svm2
+  size: 333
+  aggr: aggr1_cluster1_01_data
+- name: demo4
+  vserver: svm2
+  size: 444
+  aggr: aggr1_cluster1_02_data

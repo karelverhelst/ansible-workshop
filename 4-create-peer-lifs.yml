@@ -1,0 +1,40 @@
+---
+- hosts: localhost
+  gather_facts: false
+  name: Create Cluster Peer Lifs
+  vars:
+    login: &login
+     username: admin # Cluster User
+     password: Netapp1! # Cluster Password
+     https: true
+     validate_certs: false
+    lifs:
+    - name: peer-lif-n1
+      hostname: 192.168.0.101
+      home_node: cluster1-01
+      address: 192.168.0.120
+      vserver: cluster1
+    - name: peer-lif-n2
+      hostname: 192.168.0.101
+      home_node: cluster1-02
+      address: 192.168.0.121
+      vserver: cluster1
+    - name: peer-lif-n1
+      hostname: 192.168.0.102
+      home_node: cluster2-01
+      address: 192.168.0.122
+      vserver: cluster2
+  tasks:
+  - name: Create interface n1 cluster1
+    na_ontap_interface:
+      state: present
+      interface_name: "{{ item.name }}"
+      home_port: e0c
+      home_node: "{{ item.home_node }}"
+      role: intercluster
+      address: "{{ item.address }}"
+      netmask: 255.255.255.0
+      vserver: "{{ item.vserver }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ lifs }}" 

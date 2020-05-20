@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  name: Set cluster level message of the day
+  vars:
+   login: &login
+    hostname: 192.168.0.101
+    username: admin
+    password: Netapp1!
+    https: true
+    validate_certs: false
+  tasks:
+  - name: set banner
+    na_ontap_motd:
+      vserver: cluster1
+      message: "Welcome to the Automating ONTAP using Ansible workshop"
+      state: present
+      <<: *login

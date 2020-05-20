@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  name: Create export policy "ansible"
+  vars:
+    login: &login
+     hostname: 192.168.0.101
+     username: admin
+     password: Netapp1!
+     https: true
+     validate_certs: false
+    vserver: svm1
+    export_policy: ansible
+  tasks:
+  - name: Create ExportPolicy
+    na_ontap_export_policy_rule:
+      state: present
+      name: "{{ export_policy }}"
+      client_match: 192.168.0.0/16
+      ro_rule: any
+      rw_rule: any
+      protocol: any
+      super_user_security: any
+      allow_suid: true
+      vserver: "{{ vserver }}"
+      <<: *login

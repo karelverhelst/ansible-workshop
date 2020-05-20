@@ -1,0 +1,35 @@
+---
+- hosts: servers
+  name: Unmount the volumes on both rhel servers
+  vars:
+   vol_name: ansibleVol
+   nfs_lif : 192.168.0.131
+  tasks:
+  - name: mount
+    mount:
+     name: "/mnt/{{ vol_name }}"
+     src: "{{ nfs_lif }}:/{{ vol_name }}"
+     fstype: nfs
+     state: unmounted
+- hosts: localhost
+  name: Remove "ansibleVol" from svm1 on cluster1
+  vars:
+   login: &login
+    hostname: 192.168.0.101
+    username: admin
+    password: Netapp1!
+    https: true
+    validate_certs: false
+   vserver: svm1
+   aggr: aggr1_cluster1_01_data
+   vol_name: ansibleVol
+  tasks   :
+  - name: Volume Delete
+    na_ontap_volume:
+     state: absent
+     name: "{{ vol_name }}"
+     vserver: "{{ vserver }}"
+     aggregate_name: "{{ aggr }}"
+     <<: *login
+
+ 

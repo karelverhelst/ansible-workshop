@@ -1,0 +1,77 @@
+clustername: cluster2
+node1name: cluster2-01
+ntpservers: 192.168.1.101
+
+src_ontap: 192.168.1.110
+src_vserver: svm1
+src_volume: vol3
+dst_ontap: 192.168.1.121
+dst_vserver: svm3
+dst_volume: vol_sm
+dst_aggr: aggr1_cluster1_01_data
+
+aggr:
+ - name: aggr1_cluster2_01_data
+   node: cluster2-01
+   diskcount: 10
+
+svm:
+ - name: svm3
+   rootvol: svm1_root
+   rootaggr: aggr1_cluster2_01_data
+   aggr_list: aggr1_cluster2_01_data
+   allowed_protocols: nfs,cifs
+   dns_servers: 192.168.1.101
+   domain: homelab.local
+ - name: svm4
+   rootvol: svm2_root
+   rootaggr: aggr1_cluster2_01_data
+   aggr_list: aggr1_cluster2_01_data
+   allowed_protocols: nfs,cifs
+   dns_servers: 192.168.1.101
+   domain: homelab.local
+lif:
+ - name: nfs_lif01
+   node: cluster2-01
+   vserver: svm3
+   home: e0c
+ - name: nfs_lif02
+   node: cluster2-01
+   vserver: svm4
+   home: e0c
+vols:
+ - name: vol1
+   size: 1
+   aggr: aggr1_cluster2_01_data
+   vserver: svm3
+   security_style: unix
+ - name: vol2
+   size: 2
+   aggr: aggr1_cluster2_02_data
+   vserver: svm4
+   security_style: unix
+ - name: vol3
+   size: 3
+   aggr: aggr1_cluster2_02_data
+   vserver: svm3
+   security_style: ntfs
+licenses:
+- YVUCRRRRYVHXCFABGAAAAAAAAAAA
+- WKQGSRRRYVHXCFABGAAAAAAAAAAA
+- SOHOURRRYVHXCFABGAAAAAAAAAAA
+- KQSRRRRRYVHXCFABGAAAAAAAAAAA
+- MBXNQRRRYVHXCFABGAAAAAAAAAAA
+- QDDSVRRRYVHXCFABGAAAAAAAAAAA
+- CYAHWRRRYVHXCFABGAAAAAAAAAAA
+- GUJZTRRRYVHXCFABGAAAAAAAAAAA
+- OSYVWRRRYVHXCFABGAAAAAAAAAAA
+- UZLKTRRRYVHXCFABGAAAAAAAAAAA
+- EJFDVRRRYVHXCFABGAAAAAAAAAAA
+
+license_serial: 1-81-0000000000000004082368507
+license_names: nfs,cifs,iscsi,fcp,snaprestore,snapmirror,flexclone,snapmanagersuite,snapprotectapps,snapvault,snaplock
+
+nfsclientmatchsubnet: 192.168.1.0/24
+subnetname: Demo
+subnetnetwork: 192.168.1.0/24
+subnetiprange: ["192.168.1.123-192.168.1.129"]

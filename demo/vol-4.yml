@@ -1,0 +1,22 @@
+---
+- name: create volume
+  hosts: localhost
+  vars_files:
+  - var_vol.yml
+  vars_prompt:
+  - name: size
+    prompt: size of the volume in mb (between 100 and 2000)
+  tasks:
+  - name: create volume
+    na_ontap_volume:
+      state: present
+      name: "{{ volname }}"
+      aggregate_name: aggr1_cluster1_01_data
+      size: "{{ size }}"
+      size_unit: mb
+      vserver: "{{ vserver }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      https: true
+      validate_certs: false

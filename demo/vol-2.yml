@@ -1,0 +1,23 @@
+---
+- name: create volume
+  hosts: localhost
+  vars:
+    hostname: 192.168.1.110
+    username: admin
+    password: Netapp01
+    vserver: svm1
+    volname: ansibleVol
+  tasks:
+  - name: create volume
+    na_ontap_volume:
+      state: present
+      name: "{{ volname }}"
+      aggregate_name: aggr1_cluster1_01_data
+      size: 100
+      size_unit: mb
+      vserver: "{{ vserver }}"
+      hostname: "{{ hostname }}"
+      username: "{{ username }}"
+      password: "{{ password }}"
+      https: true
+      validate_certs: false

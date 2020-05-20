@@ -1,0 +1,45 @@
+---
+- hosts: localhost
+  gather_facts: false
+  name: Setup ONTAP
+  vars:
+    vserver1: svm1
+    vserver2: svm2
+    login: &login
+     hostname: 192.168.1.110
+     username: admin
+     password: Netapp01
+     https: true
+     validate_certs: false
+  tasks:
+  - name: Gather facts
+    na_ontap_info:
+      state: info
+      <<: *login
+    register: netapp
+  - name: remove vols svm1
+    na_ontap_volume:
+      state: absent
+      name:  "{{ netapp.ontap_info.volume_info[item].volume_id_attributes.name }}"
+      vserver: "{{ vserver1 }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.volume_info }}"
+    when:
+    - netapp.ontap_info.volume_info[item].volume_id_attributes.owning_vserver_name == "{{ vserver1 }}"
+    - (netapp.ontap_info.volume_info[item].volume_id_attributes.name).startswith('ans')
+    ignore_errors: yes
+    tags:
+    - svm1
+  - name: remove vols svm2
+    na_ontap_volume:
+      state: absent
+      name:  "{{ netapp.ontap_info.volume_info[item].volume_id_attributes.name }}"
+      vserver: "{{ vserver2 }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.volume_info }}"
+    when:
+    - netapp.ontap_info.volume_info[item].volume_id_attributes.owning_vserver_name == "{{ vserver2 }}"
+    - (netapp.ontap_info.volume_info[item].volume_id_attributes.name).startswith('ans')
+    ignore_errors: yes
+    tags:
+    - svm2

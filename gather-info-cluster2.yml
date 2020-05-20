@@ -1,0 +1,20 @@
+---
+- hosts: localhost
+  name: Get Netapp info
+  vars:
+    login: &login
+     hostname: 192.168.0.102
+     username: admin
+     password: Netapp1!
+     https: true
+     validate_certs: false
+  tasks:
+  - name: gather info
+    na_ontap_info:
+      state: info
+      <<: *login
+      gather_subset:
+      - lun_info
+    register: ontap_info
+  - debug:
+     msg: "{{ ontap_info.ontap_info }}"

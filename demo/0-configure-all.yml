@@ -1,0 +1,248 @@
+---
+- hosts: localhost
+  gather_facts: false
+  name: NetApp Cluster1 and Cluster2 System Setup
+  ignore_errors: yes
+  vars:
+    login: &login
+     username: admin
+     password: Netapp1!
+     https: true
+     validate_certs: false
+  vars_files:
+  - var_cluster.yml
+  tasks:
+  - name: Install Licenses on Cluster1
+    na_ontap_cluster:
+      state: present
+      license_code: "{{ item }}"
+      hostname: "{{ cluster1 }}"
+      <<: *login
+    with_items: "{{ license }}"
+    tags:
+    - cluster1
+    - license
+  - name: Install Licenses on Cluster2
+    na_ontap_cluster:
+      state: present
+      license_code: "{{ item }}"
+      hostname: "{{ cluster2 }}"
+      <<: *login
+    with_items: "{{ license }}"
+    tags:
+    - cluster2
+    - license
+  - name: Set NTP on all clusters
+    na_ontap_ntp:
+      state: present
+      version: auto
+      server_name: "{{ item.ntpservers }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster
+    - ntp
+  - name: Set Timezone on all clusters
+    na_ontap_command:
+      command: ['time', '-timezone', 'Europe/Brussels']
+      privilege: admin
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster
+    - ntp
+  - name: Create and Online New Data Aggregate Node1
+    na_ontap_aggregate:
+      state: present
+      service_state: online
+      nodes: "{{ item.node }}"
+      name: "{{ item.name }}"
+      disk_count: "{{ item.diskcount }}"
+      wait_for_online: true
+      time_out: 300
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ aggr }}"
+    tags:
+    - cluster
+    - aggregate
+  - name: Create Vserver svm1 and svm2
+    na_ontap_svm:
+      state: present
+      name: "{{ item.name }}"
+      root_volume: "{{ item.rootvol }}"
+      root_volume_aggregate: "{{ item.rootaggr }}"
+      aggr_list: "{{ item.aggr_list }}"
+      allowed_protocols: "{{ item.allowed_protocols }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ svm }}"
+    tags:
+    - cluster
+    - svm
+  - name: Create subnet
+    na_ontap_net_subnet:
+      state: present
+      subnet: "{{ item.subnetnetwork }}"
+      name: "{{ item.subnetname }}"
+      ip_ranges: "{{ item.subnetiprange }}"
+      gateway: 192.168.0.1
+      ipspace: Default
+      broadcast_domain: Default
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ clusters }}"
+    tags:
+    - cluster
+    - subnet
+  - name: Create NFS interfaces on svm1 and svm2
+    na_ontap_interface:
+      state: present
+      interface_name: "{{ item.name }}"
+      home_port: "{{ item.home }}"
+      home_node: "{{ item.node }}"
+      role: data
+      protocols: nfs
+      admin_status: up
+      failover_policy: system-defined
+      firewall_policy: data
+      is_auto_revert: true
+      subnet_name: "{{ item.subnetname }}"
+      vserver: "{{ item.vserver }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ lif }}"
+    tags:
+    - cluster
+    - lif    
+  - name: Start NFS
+    na_ontap_nfs:
+      state: present
+      service_state: started
+      vserver: "{{ item.name }}"
+      nfsv3: enabled
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ svm }}"
+    tags:
+    - cluster
+    - nfs
+  - name: Add NFS Export Rule Under Default Policy
+    na_ontap_export_policy_rule:
+      state: present
+      name: default
+      vserver: "{{ item.name }}"
+      client_match: "{{ item.nfsclientmatchsubnet }}"
+      ro_rule: sys
+      rw_rule: sys
+      protocol: nfs
+      super_user_security: any
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ svm }}"
+    tags:
+    - svm
+    - nfs
+  - name: Add DNS Settings to svm
+    na_ontap_dns:
+      state: present
+      vserver: "{{ item.name }}"
+      domains: "{{ item.domain }}"
+      nameservers: "{{ item.dns_servers }}"
+      skip_validation: true
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ svm }}"
+    tags:
+    - svm
+    - dns
+  - name: Create Volumes
+    na_ontap_volume:
+      state: present
+      name: "{{ item.name }}"
+      vserver: "{{ item.vserver }}"
+      aggregate_name: "{{ item.aggr }}"
+      size: "{{ item.size }}"
+      size_unit: gb
+      policy: default
+      junction_path: "/{{ item.name }}"
+      percent_snapshot_space: 0
+      space_guarantee: none
+      volume_security_style: "{{ item.security_style }}"
+      wait_for_completion: true
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ vols }}"
+    tags:
+    - cluster
+    - vol
+  - name: Create peering interfaces
+    na_ontap_interface:
+      state: present
+      interface_name: "{{ item.name }}"
+      home_port: e0c
+      home_node: "{{ item.home_node }}"
+      role: intercluster
+      address: "{{ item.address }}"
+      netmask: 255.255.255.0
+      vserver: "{{ item.vserver }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ peerlif }}"
+    tags:
+    - peer
+  - na_ontap_cluster_peer:
+      state: present
+      source_intercluster_lifs: 192.168.0.120,192.168.0.121
+      dest_intercluster_lifs: 192.168.0.122
+      passphrase: Netapp1!
+      hostname: "{{ cluster1 }}"
+      dest_hostname: "{{ cluster2 }}"
+      <<: *login
+    tags:
+    - peer
+  - name: Source vserver peer create
+    na_ontap_vserver_peer:
+      state: present
+      peer_vserver: "{{ item.dst_vserver }}"
+      peer_cluster: "{{ item.dst_cluster }}"
+      vserver: "{{ item.src_vserver }}"
+      applications: snapmirror
+      dest_hostname: "{{ item.dst_hostname }}"
+      hostname: "{{ item.hostname }}"
+      <<: *login
+    with_items: "{{ snapmirror }}"
+    tags:
+    - replication
+  - name: Validate destination FlexVol
+    na_ontap_volume:
+      state: present
+      name: "{{ item.dst_volume }}"
+      aggregate_name: "{{ item.dst_aggr }}"
+      size: 10
+      size_unit: gb
+      type: DP
+      vserver: "{{ item.dst_vserver }}"
+      hostname: "{{ item.dst_hostname }}"
+      <<: *login
+    with_items: "{{ snapmirror }}"
+    tags:
+    - replication
+  - name: Create SnapMirror
+    na_ontap_snapmirror:
+      state: present
+      source_volume: "{{ item.src_volume }}"
+      destination_volume: "{{ item.dst_volume }}"
+      source_vserver: "{{ item.src_vserver }}"
+      destination_vserver: "{{ item.dst_vserver }}"
+      hostname: "{{ item.dst_hostname }}"
+      <<: *login
+    with_items: "{{ snapmirror }}"
+    tags:
+    - svm1
+    - svm2
+    - replication
+    - snapmirror
+  

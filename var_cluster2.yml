@@ -1,0 +1,50 @@
+clustername: cluster2 
+node1name: cluster2-01
+ntpservers: 192.168.0.253
+
+peer_vserver: svm1
+peer_cluster: cluster1
+dst_ontap: 192.168.0.101
+
+aggr:
+ - name: aggr1_cluster2_01_data
+   node: cluster2-01
+   diskcount: 13
+svm:
+ - name: svm2
+   rootvol: svm2_root
+   rootaggr: aggr1_cluster2_01_data
+   aggr_list: aggr1_cluster2_01_data
+   allowed_protocols: nfs
+   dns_servers: 192.168.0.253
+   domain: demo.netapp.com
+lif:
+ - name: nfs_lif01
+   node: cluster2-01
+   vserver: svm2
+   home: e0c
+vols:
+ - name: vol1_svm2
+   size: 1
+   aggr: aggr1_cluster2_01_data
+   vserver: svm2
+   security_style: unix
+
+licenses:
+- YXXXXDBHKPKICAAAAAAAAAAAAAA
+- KXXXXDBHKPKICAAAAAAAAAAAAAA
+- WXXXXDBHKPKICAAAAAAAAAAAAAA
+- IXXXXDBHKPKICAAAAAAAAAAAAAA
+- GXXXXDBHKPKICAAAAAAAAAAAAAA
+- SXXXXDBHKPKICAAAAAAAAAAAAAA
+- EXXXXDBHKPKICAAAAAAAAAAAAAA
+- QXXXXDBHKPKICAAAAAAAAAAAAAA
+- CXXXXDBHKPKICAAAAAAAAAAAAAA
+- OXXXXDBHKPKICAAAAAAAAAAAAAA
+   
+nfsclientmatchsubnet: 192.168.0.0/24
+nfsvolname: NFS_vol2
+nfsvolsize: 1
+subnetname: Demo
+subnetnetwork: 192.168.0.0/24
+subnetiprange: ["192.168.0.151-192.168.0.159"]

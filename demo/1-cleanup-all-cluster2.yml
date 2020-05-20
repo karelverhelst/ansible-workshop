@@ -1,0 +1,176 @@
+---
+- name: Remove snapmirror, cluster peering, vserver peering, svm's, lifs, aggregates from both clusters
+  hosts: localhost
+  gather_facts: false
+  ignore_errors: true
+  vars:
+    vserver1: svm3
+    vserver2: svm4
+    cluster1: cluster1
+    ntpservers: 192.168.1.101
+    login: &login
+     hostname: 192.168.1.121
+     username: admin
+     password: Netapp01
+     https: true
+     validate_certs: false
+  vars_files:
+  - var_cluster2.yml
+  tasks:
+  - name: Delete snapmirror relationships with cluster2 as destination
+    na_ontap_command:
+      command: ['snapmirror delete *']
+      privilege: admin
+      <<: *login
+    tags:
+    - replication
+  - name: Release snapmirror relationships on cluster2
+    na_ontap_command:
+      command: ['snapmirror release * -force']
+      privilege: admin
+      <<: *login
+    tags:
+    - replication
+  - name: Remove vserver peering
+    na_ontap_vserver_peer:
+      state: absent
+      peer_vserver: "{{ vserver1 }}"
+      vserver: "{{ vserver2 }}"
+      applications: snapmirror
+      <<: *login
+    tags:
+    - replication
+  - name: Remove vserver peering
+    na_ontap_vserver_peer:
+      state: absent
+      peer_vserver: "{{ vserver2 }}"
+      vserver: "{{ vserver1 }}"
+      applications: snapmirror
+      <<: *login
+    tags:
+    - replication
+  - name: Gather facts cluster2
+    na_ontap_info:
+      state: info
+      gather_subset:
+      - net_interface_info
+      - volume_info
+      - aggregate_info
+      <<: *login
+    tags:
+    - cluster2
+    - svm1
+    - svm2
+    register: netapp
+  - name: Unset NTP on cluster2
+    na_ontap_ntp:
+      state: absent
+      version: auto
+      server_name: "{{ ntpservers }}"
+      <<: *login
+    tags:
+    - cluster2
+  - name: Set Timezone Default cluster2
+    na_ontap_command:
+      command: ['time', '-timezone', 'UTC']
+      privilege: admin
+      <<: *login
+    tags:
+    - cluster2    
+  - name: Remove all svm lifs cluster2 - svm1
+    na_ontap_interface:
+      state: absent
+      interface_name: "{{ netapp.ontap_info.net_interface_info[item].interface_name }}"
+      vserver: "{{ vserver1 }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.net_interface_info }}"
+    when:
+    - "{{ netapp.ontap_info.net_interface_info[item].vserver == vserver1 }}"
+    ignore_errors: yes
+    tags:
+    - svm1
+  - name: Remove all data vols cluster2 - svm1
+    na_ontap_volume:
+      state: absent
+      name:  "{{ netapp.ontap_info.volume_info[item].volume_id_attributes.name }}"
+      vserver: "{{ vserver1 }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.volume_info }}"
+    when:
+    - netapp.ontap_info.volume_info[item].volume_id_attributes.owning_vserver_name == "{{ vserver1 }}"
+    - not (netapp.ontap_info.volume_info[item].volume_id_attributes.name).endswith('root')
+    ignore_errors: yes
+    tags:
+    - svm1
+  - name: Remove svm1 on cluster2
+    na_ontap_svm:
+      state: absent
+      name: "{{ vserver1 }}"
+      <<: *login
+    tags:
+    - svm1   
+  - name: Remove all svm lifs cluster2 - svm2
+    na_ontap_interface:
+      state: absent
+      interface_name: "{{ netapp.ontap_info.net_interface_info[item].interface_name }}"
+      vserver: "{{ vserver2 }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.net_interface_info }}"
+    when:
+    - "{{ netapp.ontap_info.net_interface_info[item].vserver == vserver2 }}"
+    ignore_errors: yes
+    tags:
+    - svm2
+  - name: Remove all data vols cluster2 - svm2
+    na_ontap_volume:
+      state: absent
+      name:  "{{ netapp.ontap_info.volume_info[item].volume_id_attributes.name }}"
+      vserver: "{{ vserver2 }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.volume_info }}"
+    when:
+    - netapp.ontap_info.volume_info[item].volume_id_attributes.owning_vserver_name == "{{ vserver2 }}"
+    - not (netapp.ontap_info.volume_info[item].volume_id_attributes.name).endswith('root')
+    ignore_errors: yes
+    tags:
+    - svm2
+  - name: Remove svm2 on cluster2
+    na_ontap_svm:
+      state: absent
+      name: "{{ vserver2 }}"
+      <<: *login
+    tags:
+    - svm2
+  - name: Remove data aggregate from cluster2
+    na_ontap_aggregate:
+      state: absent
+      name: "{{ netapp.ontap_info.aggregate_info[item].aggregate_name }}"
+      <<: *login
+    with_items: "{{ netapp.ontap_info.aggregate_info }}"
+    when:
+    - netapp.ontap_info.aggregate_info[item].aggr_raid_attributes.is_root_aggregate == "false"
+    ignore_errors: yes
+    tags:
+    - cluster2
+  - name: Remove Licenses on Cluster2
+    na_ontap_license:
+      state: absent
+      license_names: "{{ license_names }}"
+      serial_number: "{{ license_serial }}"
+      <<: *login
+    tags:
+    - cluster2
+  - name: Remove subnet
+    na_ontap_net_subnet:
+      state: absent
+      subnet: 192.168.1.0/24
+      name: Demo
+      ip_ranges: [ '192.168.1.123-192.168.1.129' ]
+      gateway: 192.168.1.1
+      ipspace: Default
+      broadcast_domain: Default  
+      <<: *login
+    tags:
+    - cluster2
+    
+      
