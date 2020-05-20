@@ -1,5 +1,5 @@
-hostname: 192.168.1.110
+hostname: 192.168.0.101
 username: admin
-password: Netapp01
+password: Netapp1!
 vserver: svm1
 volname: ansibleVol
