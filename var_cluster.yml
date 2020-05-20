@@ -1,0 +1,148 @@
+cluster1: 192.168.0.101
+cluster2: 192.168.0.102
+
+clusters:
+- name: cluster1
+  hostname: 192.168.0.101
+  license_serial: 1-80-000011
+  license_names: nfs,cifs,iscsi,fcp,snaprestore,snapmirror,flexclone,snapmanagersuite,snapprotectapps,snapvault,snaplock
+  subnetname: Demo
+  subnetiprange: ["192.168.0.151-192.168.0.159"]
+  subnetnetwork: 192.168.0.0/24
+  nfsclientmatchsubnet: 192.168.0.0/24
+  ntpservers: 192.168.0.253
+- name: cluster2
+  hostname: 192.168.0.102
+  license_serial: 1-80-000011
+  license_names: nfs,cifs,iscsi,fcp,snaprestore,snapmirror,flexclone,snapmanagersuite,snapprotectapps,snapvault,snaplock
+  subnetname: Demo
+  subnetiprange: ["192.168.0.161-192.168.0.169"]
+  subnetnetwork: 192.168.0.0/24
+  nfsclientmatchsubnet: 192.168.0.0/24
+  ntpservers: 192.168.0.253
+
+snapmirror:
+- src_vserver: svm1
+  src_volume: vol1
+  dst_vserver: svm2
+  dst_volume: vol1_sm
+  dst_aggr: aggr1_cluster2_01_data
+  dst_cluster: cluster2
+  dst_hostname: "{{ cluster2 }}"
+  hostname: "{{ cluster1 }}"
+- src_vserver: svm2
+  src_volume: vol3
+  dst_vserver: svm1
+  dst_volume: vol3_sm
+  dst_aggr: aggr1_cluster1_01_data
+  dst_cluster: cluster1
+  dst_hostname: "{{ cluster1 }}"
+  hostname: "{{ cluster2 }}"
+
+aggr:
+ - name: aggr1_cluster1_01_data
+   node: cluster1-01
+   diskcount: 10
+   hostname: "{{ cluster1 }}"
+ - name: aggr1_cluster1_02_data
+   node: cluster1-02
+   diskcount: 10
+   hostname: "{{ cluster1 }}"
+ - name: aggr1_cluster2_01_data
+   node: cluster2-01
+   diskcount: 10
+   hostname: "{{ cluster2 }}"
+   
+svm:
+ - name: svm1
+   rootvol: svm1_root
+   rootaggr: aggr1_cluster1_01_data
+   aggr_list: aggr1_cluster1_01_data,aggr1_cluster1_02_data
+   allowed_protocols: nfs,cifs
+   dns_servers: 192.168.0.253
+   domain: demo.netapp.com
+   hostname: "{{ cluster1 }}"
+   nfsclientmatchsubnet: 192.168.0.0/24
+ - name: svm2
+   rootvol: svm2_root
+   rootaggr: aggr1_cluster2_01_data
+   aggr_list: aggr1_cluster2_01_data
+   allowed_protocols: nfs,cifs
+   dns_servers: 192.168.0.253
+   domain: demo.netapp.com
+   hostname: "{{ cluster2 }}"
+   nfsclientmatchsubnet: 192.168.0.0/24
+   
+lif:
+ - name: nfs_svm1_01
+   node: cluster1-01
+   hostname: "{{ cluster1 }}"
+   vserver: svm1
+   home: e0c
+   subnetname: Demo
+ - name: nfs_svm1_02
+   node: cluster1-02
+   hostname: "{{ cluster1 }}"
+   vserver: svm1
+   home: e0c
+   subnetname: Demo
+ - name: nfs_svm2_01
+   node: cluster2-01
+   hostname: "{{ cluster2 }}"
+   vserver: svm2
+   home: e0c
+   subnetname: Demo
+peerlif:
+ - name: peer-lif-n1
+   hostname: 192.168.0.101
+   home_node: cluster1-01
+   address: 192.168.0.120
+   vserver: cluster1
+ - name: peer-lif-n2
+   hostname: 192.168.0.101
+   home_node: cluster1-02
+   address: 192.168.0.121
+   vserver: cluster1
+ - name: peer-lif-n1
+   hostname: 192.168.0.102
+   home_node: cluster2-01
+   address: 192.168.0.122
+   vserver: cluster2
+   
+vols:
+ - name: vol1
+   size: 1
+   aggr: aggr1_cluster1_01_data
+   hostname: "{{ cluster1 }}"
+   vserver: svm1
+   security_style: unix
+ - name: vol2
+   size: 2
+   aggr: aggr1_cluster1_02_data
+   hostname: "{{ cluster1 }}"
+   vserver: svm1
+   security_style: unix
+ - name: vol3
+   size: 3
+   aggr: aggr1_cluster2_01_data
+   hostname: "{{ cluster2 }}"
+   vserver: svm2
+   security_style: ntfs
+ - name: vol4
+   size: 4
+   aggr: aggr1_cluster2_01_data
+   hostname: "{{ cluster2 }}"
+   vserver: svm2
+   security_style: ntfs
+   
+license:
+- YRUMQKDBHKPKICAAAAAAAAAAAAAA
+- KMSBRKDBHKPKICAAAAAAAAAAAAAA
+- WGQQRKDBHKPKICAAAAAAAAAAAAAA
+- IBOFSKDBHKPKICAAAAAAAAAAAAAA
+- GQJJTKDBHKPKICAAAAAAAAAAAAAA
+- SKHYTKDBHKPKICAAAAAAAAAAAAAA
+- EFFNUKDBHKPKICAAAAAAAAAAAAAA
+- QZCCVKDBHKPKICAAAAAAAAAAAAAA
+- CUARVKDBHKPKICAAAAAAAAAAAAAA
+- OOYFWKDBHKPKICAAAAAAAAAAAAAA
