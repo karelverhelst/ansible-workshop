@@ -11,10 +11,10 @@ vol:
   size: 222
   aggr: aggr1_cluster1_01_data
 - name: demo3
-  vserver: svm2
+  vserver: svm1
   size: 333
   aggr: aggr1_cluster1_01_data
 - name: demo4
-  vserver: svm2
+  vserver: svm1
   size: 444
   aggr: aggr1_cluster1_02_data

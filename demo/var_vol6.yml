@@ -8,11 +8,11 @@ vol:
   size: 222
   aggr: aggr1_cluster1_01_data
 - name: demo3
-  vserver: svm2
+  vserver: svm1
   size: 333
   aggr: aggr1_cluster1_01_data
 - name: demo4
-  vserver: svm2
+  vserver: svm1
   size: 444
   aggr: aggr1_cluster1_02_data
 
@@ -25,9 +25,5 @@ lif:
   home: e0c
 - name: lif-svm1-demo2
   vserver: svm1
-  node: cluster1-02
-  home: e0c
-- name: lif-svm2-demo1
-  vserver: svm2
   node: cluster1-02
   home: e0c
