@@ -53,7 +53,7 @@
     tags:
     - cluster
     - ntp
-  - name: Create and Online New Data Aggregate Node1
+  - name: Create and Online New Data Aggregates on Cluster1 and Cluster2
     na_ontap_aggregate:
       state: present
       service_state: online
@@ -82,7 +82,7 @@
     tags:
     - cluster
     - svm
-  - name: Create subnet
+  - name: Create subnet on both clusters
     na_ontap_net_subnet:
       state: present
       subnet: "{{ item.subnetnetwork }}"
@@ -117,7 +117,7 @@
     tags:
     - cluster
     - lif    
-  - name: Start NFS
+  - name: Start NFS on both svm's
     na_ontap_nfs:
       state: present
       service_state: started
@@ -129,7 +129,7 @@
     tags:
     - cluster
     - nfs
-  - name: Add NFS Export Rule Under Default Policy
+  - name: Add NFS Export Rule Under Default Policy for both svm's
     na_ontap_export_policy_rule:
       state: present
       name: default
@@ -145,7 +145,7 @@
     tags:
     - svm
     - nfs
-  - name: Add DNS Settings to svm
+  - name: Add DNS Settings to svm's
     na_ontap_dns:
       state: present
       vserver: "{{ item.name }}"
@@ -158,7 +158,7 @@
     tags:
     - svm
     - dns
-  - name: Create Volumes
+  - name: Create Volumes on svm's
     na_ontap_volume:
       state: present
       name: "{{ item.name }}"
@@ -178,7 +178,7 @@
     tags:
     - cluster
     - vol
-  - name: Create peering interfaces
+  - name: Create peering interfaces on both clusters
     na_ontap_interface:
       state: present
       interface_name: "{{ item.name }}"
@@ -216,7 +216,7 @@
     with_items: "{{ snapmirror }}"
     tags:
     - replication
-  - name: Validate destination FlexVol
+  - name: Validate destination FlexVol for snapmirror relationship
     na_ontap_volume:
       state: present
       name: "{{ item.dst_volume }}"
@@ -230,7 +230,7 @@
     with_items: "{{ snapmirror }}"
     tags:
     - replication
-  - name: Create SnapMirror
+  - name: Create SnapMirror relationship
     na_ontap_snapmirror:
       state: present
       source_volume: "{{ item.src_volume }}"
