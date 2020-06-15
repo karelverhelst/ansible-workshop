@@ -50,6 +50,15 @@
       allowed_protocols: "{{ item.allowed_protocols }}"
       <<: *login
     with_items: "{{ svm }}"
+  - name: Create Subnet
+    na_ontap_net_subnet:
+      state: present
+      name: "{{ subnetname }}"
+      subnet: "{{ subnetnetwork }}"
+      ip_ranges: "{{ subnetiprange }}"
+      ipspace: Default
+      broadcast_domain: Default
+      <<: *login
   - name: Create NFS interfaces on svm1
     na_ontap_interface:
       state: present
