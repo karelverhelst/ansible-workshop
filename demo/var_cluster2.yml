@@ -1,11 +1,11 @@
 clustername: cluster2
 node1name: cluster2-01
-ntpservers: 192.168.1.101
+ntpservers: 192.168.0.253
 
-src_ontap: 192.168.1.110
+src_ontap: 192.168.0.101
 src_vserver: svm1
 src_volume: vol3
-dst_ontap: 192.168.1.121
+dst_ontap: 192.168.0.102
 dst_vserver: svm3
 dst_volume: vol_sm
 dst_aggr: aggr1_cluster1_01_data
@@ -71,7 +71,7 @@ licenses:
 license_serial: 1-81-0000000000000004082368507
 license_names: nfs,cifs,iscsi,fcp,snaprestore,snapmirror,flexclone,snapmanagersuite,snapprotectapps,snapvault,snaplock
 
-nfsclientmatchsubnet: 192.168.1.0/24
+nfsclientmatchsubnet: 192.168.0.0/24
 subnetname: Demo
-subnetnetwork: 192.168.1.0/24
-subnetiprange: ["192.168.1.123-192.168.1.129"]
+subnetnetwork: 192.168.0.0/24
+subnetiprange: ["192.168.0.151-192.168.0.159"]
