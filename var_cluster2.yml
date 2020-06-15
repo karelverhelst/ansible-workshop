@@ -1,60 +1,35 @@
-clustername: cluster2
+clustername: cluster2 
 node1name: cluster2-01
 ntpservers: 192.168.0.253
 
-src_ontap: 192.168.0.101
-src_vserver: svm1
-src_volume: vol3
-dst_ontap: 192.168.0.102
-dst_vserver: svm3
-dst_volume: vol_sm
-dst_aggr: aggr1_cluster1_01_data
+peer_vserver: svm1
+peer_cluster: cluster1
+dst_ontap: 192.168.0.101
 
 aggr:
  - name: aggr1_cluster2_01_data
    node: cluster2-01
-   diskcount: 10
-
+   diskcount: 13
 svm:
- - name: svm3
-   rootvol: svm1_root
-   rootaggr: aggr1_cluster2_01_data
-   aggr_list: aggr1_cluster2_01_data
-   allowed_protocols: nfs,cifs
-   dns_servers: 192.168.0.253
-   domain: homelab.local
- - name: svm4
+ - name: svm2
    rootvol: svm2_root
    rootaggr: aggr1_cluster2_01_data
    aggr_list: aggr1_cluster2_01_data
-   allowed_protocols: nfs,cifs
+   allowed_protocols: nfs
    dns_servers: 192.168.0.253
-   domain: homelab.local
+   domain: demo.netapp.com
 lif:
  - name: nfs_lif01
    node: cluster2-01
-   vserver: svm3
-   home: e0c
- - name: nfs_lif02
-   node: cluster2-01
-   vserver: svm4
+   vserver: svm2
    home: e0c
 vols:
- - name: vol1
+ - name: vol1_svm2
    size: 1
    aggr: aggr1_cluster2_01_data
-   vserver: svm3
+   vserver: svm2
    security_style: unix
- - name: vol2
-   size: 2
-   aggr: aggr1_cluster2_02_data
-   vserver: svm4
-   security_style: unix
- - name: vol3
-   size: 3
-   aggr: aggr1_cluster2_02_data
-   vserver: svm3
-   security_style: ntfs
+
 licenses:
 - YVUCRRRRYVHXCFABGAAAAAAAAAAA
 - WKQGSRRRYVHXCFABGAAAAAAAAAAA
@@ -67,11 +42,10 @@ licenses:
 - OSYVWRRRYVHXCFABGAAAAAAAAAAA
 - UZLKTRRRYVHXCFABGAAAAAAAAAAA
 - EJFDVRRRYVHXCFABGAAAAAAAAAAA
-
-license_serial: 1-81-0000000000000000000000072
-license_names: nfs,cifs,iscsi,fcp,snaprestore,snapmirror,flexclone,snapmanagersuite,snapprotectapps,snapvault,snaplock
-
+   
 nfsclientmatchsubnet: 192.168.0.0/24
+nfsvolname: NFS_vol2
+nfsvolsize: 1
 subnetname: Demo
 subnetnetwork: 192.168.0.0/24
-subnetiprange: ["192.168.1.160-192.168.1.169"]
+subnetiprange: ["192.168.0.151-192.168.0.159"]
