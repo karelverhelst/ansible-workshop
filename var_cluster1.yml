@@ -1,25 +1,35 @@
 clustername: cluster1
 node1name: cluster1-01
-node2name: cluster1-02
 ntpservers: 192.168.0.253
 
-peer_vserver: svm2
-peer_cluster: cluster2
-dst_ontap: 192.168.0.102
+src_ontap: 192.168.0.101
+src_vserver: svm1
+src_volume: vol1
+dst_ontap: 192.168.0.101
+dst_vserver: svm2
+dst_volume: vol_sm
+dst_aggr: aggr1_cluster1_01_data
 
 aggr:
  - name: aggr1_cluster1_01_data
    node: cluster1-01
-   diskcount: 13
+   diskcount: 10
  - name: aggr1_cluster1_02_data
    node: cluster1-02
-   diskcount: 13
+   diskcount: 10
 svm:
  - name: svm1
    rootvol: svm1_root
    rootaggr: aggr1_cluster1_01_data
-   aggr_list: aggr1_cluster1_01_data
-   allowed_protocols: nfs
+   aggr_list: aggr1_cluster1_01_data,aggr1_cluster1_02_data
+   allowed_protocols: nfs,cifs
+   dns_servers: 192.168.0.253
+   domain: demo.netapp.com
+ - name: svm2
+   rootvol: svm2_root
+   rootaggr: aggr1_cluster1_01_data
+   aggr_list: aggr1_cluster1_01_data,aggr1_cluster1_02_data
+   allowed_protocols: nfs,cifs
    dns_servers: 192.168.0.253
    domain: demo.netapp.com
 lif:
@@ -29,7 +39,7 @@ lif:
    home: e0c
  - name: nfs_lif02
    node: cluster1-02
-   vserver: svm1
+   vserver: svm2
    home: e0c
 vols:
  - name: vol1
@@ -39,27 +49,31 @@ vols:
    security_style: unix
  - name: vol2
    size: 2
-   aggr: aggr1_cluster1_01_data
-   vserver: svm1
+   aggr: aggr1_cluster1_02_data
+   vserver: svm2
    security_style: unix
  - name: vol3
    size: 3
-   aggr: aggr1_cluster1_01_data
+   aggr: aggr1_cluster1_02_data
    vserver: svm1
-   security_style: unix
+   security_style: ntfs
 licenses:
-- YXXXXDBHKPKICAAAAAAAAAAAAAA
-- KXXXXDBHKPKICAAAAAAAAAAAAAA
-- WXXXXDBHKPKICAAAAAAAAAAAAAA
-- IXXXXDBHKPKICAAAAAAAAAAAAAA
-- GXXXXDBHKPKICAAAAAAAAAAAAAA
-- SXXXXDBHKPKICAAAAAAAAAAAAAA
-- EXXXXDBHKPKICAAAAAAAAAAAAAA
-- QXXXXDBHKPKICAAAAAAAAAAAAAA
-- CXXXXDBHKPKICAAAAAAAAAAAAAA
-- OXXXXDBHKPKICAAAAAAAAAAAAAA
+- YVUCRRRRYVHXCFABGAAAAAAAAAAA
+- WKQGSRRRYVHXCFABGAAAAAAAAAAA
+- SOHOURRRYVHXCFABGAAAAAAAAAAA
+- KQSRRRRRYVHXCFABGAAAAAAAAAAA
+- MBXNQRRRYVHXCFABGAAAAAAAAAAA
+- QDDSVRRRYVHXCFABGAAAAAAAAAAA
+- CYAHWRRRYVHXCFABGAAAAAAAAAAA
+- GUJZTRRRYVHXCFABGAAAAAAAAAAA
+- OSYVWRRRYVHXCFABGAAAAAAAAAAA
+- UZLKTRRRYVHXCFABGAAAAAAAAAAA
+- EJFDVRRRYVHXCFABGAAAAAAAAAAA
+
+license_serial: 1-81-0000000000000000000000070,1-81-0000000000000000000000071
+license_names: nfs,cifs,iscsi,fcp,snaprestore,snapmirror,flexclone,snapmanagersuite,snapprotectapps,snapvault,snaplock
 
 nfsclientmatchsubnet: 192.168.0.0/24
 subnetname: Demo
 subnetnetwork: 192.168.0.0/24
-subnetiprange: ["192.168.0.131-192.168.0.149"]
+subnetiprange: ["192.168.0.151-192.168.0.159"]
