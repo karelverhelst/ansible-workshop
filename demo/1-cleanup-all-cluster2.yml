@@ -7,9 +7,9 @@
     vserver1: svm3
     vserver2: svm4
     cluster1: cluster1
-    ntpservers: 192.168.1.101
+    ntpservers: 192.168.0.253
     login: &login
-     hostname: 192.168.1.121
+     hostname: 192.168.0.102
      username: admin
      password: Netapp01
      https: true
