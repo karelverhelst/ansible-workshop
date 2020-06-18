@@ -70,6 +70,14 @@
       name: Demo
       ipspace: Default
       <<: *login
+  - name: Delete CIFS vserver
+    na_ontap_cifs_server:
+      state: absent
+      admin_user_name: administrator
+      admin_password: Netapp1!
+      cifs_server_name: svm21
+      vserver: svm21
+      <<: *login
   - name: Delete Vserver svm21
     na_ontap_svm:
       state: absent
