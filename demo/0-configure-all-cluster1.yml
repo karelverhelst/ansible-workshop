@@ -5,9 +5,9 @@
   ignore_errors: yes
   vars:
     login: &login
-     hostname: 192.168.1.110
+     hostname: 192.168.0.101
      username: admin
-     password: Netapp01
+     password: Netapp1!
      https: true
      validate_certs: false
   vars_files:
@@ -64,10 +64,10 @@
   - name: Create subnet
     na_ontap_net_subnet:
       state: present
-      subnet: 192.168.1.0/24
+      subnet: 192.168.0.0/24
       name: Demo
-      ip_ranges: [ '192.168.1.113-192.168.1.119' ]
-      gateway: 192.168.1.1
+      ip_ranges: [ '192.168.0.113-192.168.0.119' ]
+      gateway: 192.168.0.1
       ipspace: Default
       broadcast_domain: Default  
       <<: *login
