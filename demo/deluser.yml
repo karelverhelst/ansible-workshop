@@ -7,7 +7,7 @@
      vserver: svm1
      username: admin
      password: "{{ password }}"
-     hostname: 192.168.1.111
+     hostname: 192.168.0.101
      https: true
      validate_certs: false
      
