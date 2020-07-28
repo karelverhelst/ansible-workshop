@@ -42,15 +42,15 @@ snapmirror:
 aggr:
  - name: aggr1_cluster1_01_data
    node: cluster1-01
-   diskcount: 10
+   diskcount: 8
    hostname: "{{ cluster1 }}"
  - name: aggr1_cluster1_02_data
    node: cluster1-02
-   diskcount: 10
+   diskcount: 8
    hostname: "{{ cluster1 }}"
  - name: aggr1_cluster2_01_data
    node: cluster2-01
-   diskcount: 10
+   diskcount: 8
    hostname: "{{ cluster2 }}"
    
 svm:
