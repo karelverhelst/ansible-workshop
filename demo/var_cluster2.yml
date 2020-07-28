@@ -13,7 +13,7 @@ dst_aggr: aggr1_cluster1_01_data
 aggr:
  - name: aggr1_cluster2_01_data
    node: cluster2-01
-   diskcount: 10
+   diskcount: 8
 
 svm:
  - name: svm3
