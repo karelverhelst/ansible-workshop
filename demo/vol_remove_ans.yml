@@ -6,9 +6,9 @@
     vserver1: svm1
     vserver2: svm2
     login: &login
-     hostname: 192.168.1.110
+     hostname: 192.168.0.101
      username: admin
-     password: Netapp01
+     password: Netapp1!
      https: true
      validate_certs: false
   tasks:
