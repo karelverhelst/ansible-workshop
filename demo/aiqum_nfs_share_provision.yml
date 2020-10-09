@@ -2,7 +2,7 @@
 # Make sure AIQUM credentials are updated in aiqum_credentials.yml file before trying this playbook
   vars_files: aiqum_credentials.yml
   vars:
-      psl: Perfomance
+      psl: Performance
       cluster: cluster1
       svm: svm1
       state: present # Possible values are present,absent
@@ -14,8 +14,8 @@
       index: 1
       nfsv3: true # Possible values are true, false
       nfsv4: true # Possible values are true, false
-      read_only_rule: 0.0.0.0/0 # Possible values are from SYS,NTLM,KERBEROS5,KERBEROS5I,KERBEROS5P,NONE,NEVER,ANY or  any, none, never, kerberos5, kerberos5i, kerberos5p, ntlm, sys
-      read_write_rule: 0.0.0.0/0 # Possible values are from SYS,NTLM,KERBEROS5,KERBEROS5I,KERBEROS5P,NONE,NEVER,ANY or  any, none, never, kerberos5, kerberos5i, kerberos5p, ntlm, sys
+      read_only_rule: any # Possible values are from SYS,NTLM,KERBEROS5,KERBEROS5I,KERBEROS5P,NONE,NEVER,ANY or  any, none, never, kerberos5, kerberos5i, kerberos5p, ntlm, sys
+      read_write_rule: any # Possible values are from SYS,NTLM,KERBEROS5,KERBEROS5I,KERBEROS5P,NONE,NEVER,ANY or  any, none, never, kerberos5, kerberos5i, kerberos5p, ntlm, sys
 
 
   tasks:
