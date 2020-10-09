@@ -1,0 +1,76 @@
+- hosts: localhost
+# Make sure AIQUM credentials are updated in aiqum_credentials.yml file before trying this playbook
+  vars_files: aiqum_credentials.yml
+  vars:
+      psl: Performance  
+      cluster: cluster1
+      svm: svm1
+      state: present # Possible values are present,absent
+      lunname: demolun 
+      lunsize: 20971520 
+      lunostype: linux
+      igroup: demoigroup
+      initiators: iqn.1994-05.com.redhat:rhel2.demo.netapp.com
+      igroupostype: linux
+      igrouptype: iscsi
+
+  tasks:
+    - name: Create initiator group for the host
+      aiqum_igroups:
+        state={{ state }}
+        hostip={{ aiqumIP }}
+        port={{ aiqumPort }}
+        user={{ aiqumUser }}
+        password={{ aiqumPassword }}
+        name={{ igroup }}
+        cluster={{ cluster }}
+        svm={{ svm }}
+        os_type={{ igroupostype }}
+        initiators={{ initiators }}
+        type={{ igrouptype }}
+      when: state == "present"
+      no_log: false 
+      register: igroupCreate
+
+    - name: Print the igroup post or patch response
+      debug: msg="Creation/Updation of initiator group {{igroupCreate}}"
+      when: state == "present"
+
+    - name: Create a LUN with specified Performance Service Level by the name
+      aiqum_luns:
+        state={{ state }}
+        hostip={{ aiqumIP }}
+        port={{ aiqumPort }}
+        user={{ aiqumUser }}
+        password={{ aiqumPassword }}
+        cluster={{ cluster }}
+        svm={{ svm }}
+        performance_service_level={{ psl }}
+        name={{ lunname }}
+        capacity={{ lunsize }}
+        igroup={{ igroup }}
+        os_type={{ lunostype }}
+      no_log: false
+      register: lunCreate
+
+    - name: Print the lun job key
+      debug: msg="Creation/Updation of LUN in specified PSL {{lunCreate["meta"]["state"]}}"
+      when: state == "present"
+
+    - name: Delete an igroup if state is absent
+      aiqum_igroups:
+        state={{ state }}
+        hostip={{ aiqumIP }}
+        port={{ aiqumPort }}
+        user={{ aiqumUser }}
+        password={{ aiqumPassword }}
+        name={{ igroup }}
+        cluster={{ cluster }}
+        svm={{ svm }}
+      no_log: true
+      when: state == "absent"
+      register: igroupDelete
+
+    - name: Print the igroup post response
+      debug: msg="{{igroupDelete}}"
+      when: state == "absent"

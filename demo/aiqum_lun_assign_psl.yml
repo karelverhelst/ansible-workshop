@@ -1,0 +1,31 @@
+- hosts: localhost
+# Make sure AIQUM credentials are updated in aiqum_credentials.yml file before trying this playbook
+  vars_files: aiqum_credentials.yml
+  vars:
+      state: present
+      cluster: cluster1
+      svm: svm1
+      lunname: karel
+      volumename: NSLM_vol_karel
+      psl: karel
+      sep: High 
+
+  tasks:
+    - name: Assign specified performance service level and/or storage effieiciency policy for a LUN
+      aiqum_luns:
+        state={{ state }}
+        hostip={{ aiqumIP }}
+        port={{ aiqumPort }}
+        user={{ aiqumUser }}
+        password={{ aiqumPassword }}
+        cluster={{ cluster }}
+        svm={{ svm }}
+        name={{ lunname }}
+        volume_name={{ volumename }}
+        performance_service_level={{ psl }}
+        #storage_efficiency_policy={{ sep }}
+      no_log: false
+      register: lunAssign
+
+    - name: Print the lun job key
+      debug: msg="Assigning a performce service level and storage efficiency policy {{lunAssign["meta"]}}"
